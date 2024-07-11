@@ -22,6 +22,15 @@ function onConnected(socket){
         console.log(`socket disconnected: ${socket.id}`)
         socketConnected.delete(socket.id);
         io.emit('total-clients', socketConnected.size);
+    });
+
+    socket.on('message', data=>{
+        // console.log(data);
+        socket.broadcast.emit('chat-message', data);
+    })
+
+    socket.on('feedback', data=>{
+        socket.broadcast.emit('feedback', data);
     })
 }
 

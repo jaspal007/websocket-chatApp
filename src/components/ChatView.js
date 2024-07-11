@@ -1,21 +1,74 @@
 import { CiUser } from "react-icons/ci";
 import { IoIosSend } from "react-icons/io";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import moment from "moment";
 import ChatContent from "./ChatContent";
-// import { useEffect } from "react";
-// import io from "socket.io-client";
-let socket;
 
-export default function () {
+export default function ({ socket }) {
   const [name, setName] = useState("anonymous");
-  const [message, setMessage] = useState("enter message....");
+  const [message, setMessage] = useState("");
   const [date, setDate] = useState(moment(Date.now()).fromNow());
-  const [packet, setPacket] = useState({
-    name: name,
-    message: message,
-    date: date,
-  });
+  const [messages, setMessages] = useState([]);
+  const [feedback, setFeedback] = useState("");
+
+  useEffect(() => {
+    socket.on("chat-message", (data) => {
+      addMessageToUI(false, data);
+    });
+    socket.on("feedback", (data) => {
+      console.log(data.feedback);
+      setFeedback(data.feedback);
+    });
+    return () => {
+      socket.off("chat-message");
+      socket.off("feedback");
+    };
+  }, [socket, feedback]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  function sendMessage() {
+    if (message.valueOf() === "") return;
+    console.log(`value of message: ${message.valueOf()}`);
+    const pkt = {
+      name: name,
+      message: message,
+      date: date,
+      isOwn: true,
+    };
+    socket.emit("message", pkt);
+    addMessageToUI(true, pkt);
+    setMessage("");
+  }
+
+  function addMessageToUI(isOwn, pkt) {
+    setMessages((p) => [...p, { ...pkt, isOwn }]);
+  }
+  function scrollToBottom() {
+    const chatContent = document.getElementById("chat-content");
+    chatContent.scrollTo({ top: chatContent.scrollHeight, behavior: "smooth" });
+  }
+
+  function clearFeedback() {
+    const messageInput = document.getElementById("message-input");
+    messageInput.addEventListener("focus", (e) => {
+      socket.emit("feedback", {
+        feedback: `✍️${name.valueOf()} is typing...`,
+      });
+    });
+    messageInput.addEventListener("keypress", (e) => {
+      socket.emit("feedback", {
+        feedback: `✍️${name.valueOf()} is typing...`,
+      });
+    });
+    messageInput.addEventListener("blur", (e) => {
+      socket.emit("feedback", {
+        feedback: "",
+      });
+    });
+  }
 
   return (
     <div className="flex justify-center">
@@ -29,25 +82,22 @@ export default function () {
             onChange={(e) => setName(e.target.value)}
           />
         </div>
-        <ChatContent packet={packet} />
+        <ChatContent messages={messages} feedback={feedback} />
         <div className="flex justify-between w-full h-20 bg-[#ebebeb] rounded-t-2xl rounded-b-lg p-2">
           <textarea
             className="text-3xl grow text-[#7e7e7e] border-none outline-none bg-[#ebebeb] break-words h-16 scrollbar-hide"
             type="text"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              clearFeedback();
+            }}
+            id="message-input"
           />
           <div className="w-1 bg-[#dddddd] rounded-xl"></div>
           <button
             className="flex justify-center content-center items-center text-[#7e7e7e]"
-            onSubmit={(e) => {
-              setPacket({
-                name: name,
-                message: message,
-                date: date,
-              });
-              socket.emit('message-sent', packet);
-            }}
+            onClick={(e) => sendMessage()}
           >
             <IoIosSend className="text-2xl" />
             <p className="text-2xl">send</p>
