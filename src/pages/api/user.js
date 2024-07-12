@@ -1,6 +1,5 @@
 import { initMongoose } from "../../../config/mongoose";
 import User from "../../../models/User";
-// import User from "../../../models/User";
 
 export default async function handler(req, res) {
   console.log("executing...");
@@ -10,12 +9,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  var user = req.body;
-  const usr = await User.create({
-    email: user["email"],
-    name: user["name"],
-    username: user["username"],
-    password: user["password"],
-  });
-  res.status(200).json({ message: "User registered successfully..." });
+  var usr = req.body;
+  var username = usr["username"];
+  let resp = await User.findOne({ username });
+  if (!resp) res.status(200).json({ message: 'valid' });
+  res.status(200).json({ message: 'invalid' });
 }

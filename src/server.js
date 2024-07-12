@@ -38,6 +38,9 @@ nextApp.prepare().then(()=>{
     app.get('*', (req, res)=>{
         return nextHandler(req, res);
     })
+    app.post('*', (req, res)=>{
+        return nextHandler(req, res);
+    })
     server.listen(port, err=>{
         if(err)throw err
         console.log(`Server ready at the port: ${port}`);
