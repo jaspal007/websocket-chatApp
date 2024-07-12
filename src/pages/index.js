@@ -1,13 +1,12 @@
 // import { io } from "socket.io-client";
 import Chat from "./chat";
 import connection, { initMongoose } from "../../config/mongoose";
-import Signup from "@/components/Signup";
 import { useEffect } from "react";
 
 export default function Home() {
   return (
     <div className="w-full h-screen">
-      <Signup />
+      Hello
     </div>
   );
 }
