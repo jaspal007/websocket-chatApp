@@ -1,11 +1,10 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig =  {
   reactStrictMode: false,
-  // webpack5: true,
-  webpack: (config) => {
+  webpack: async (config) => {
     config.resolve.fallback = { fs: false };
 
-    return config;
+    return config
   },
   experimental: {
     esmExternals: "loose",

@@ -1,6 +1,7 @@
 import Input from "@/components/Input";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import Slug from "./user/[...user]";
 
 export default function () {
   const router = useRouter();
@@ -23,8 +24,8 @@ export default function () {
     });
     response = await response.json();
     console.log(response["message"]);
-    setMessage(response['message']);
-    if (response["status"] === "ok") router.push("/");
+    setMessage(response["message"]);
+    if (response["status"] === "ok") router.push(`/user/${[user.username]}`);
   };
   return (
     <div className="w-full h-screen flex flex-col justify-center items-center">
@@ -46,8 +47,8 @@ export default function () {
             name={"password"}
             setValue={setPassword}
             placeholder={"magic words...✨"}
-            />
-            <h2 className="mb-5 text-4xl text-[#3a3a3a]">{message}</h2>
+          />
+          <h2 className="mb-5 text-4xl text-[#3a3a3a]">{message}</h2>
           <button
             className="text-2xl text-white font-bold p-5 rounded-xl shadow-2xl hover:drop-shadow-2xl bg-black/75 hover:bg-black focus:ring-black focus:ring-4 focus:ring-offset-2 disabled:bg-[#7e7e7e]/25 disabled:text-black/50"
             type="submit"

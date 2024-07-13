@@ -54,7 +54,7 @@ export default function () {
   };
 
   return (
-    <div className="w-full h-screen flex flex-col justify-center items-center">
+    <div className="w-full h-screen flex flex-col justify-center items-center mb-10">
       <h1 className="m-5 text-7xl font-extrabold">Sign Up</h1>
       <div className="flex flex-col h-fit w-3/4 text-center justify-center rounded-2xl shadow-[0px_12px_50px_-12px_rgba(0,0,0,0.5)] bg-[#ebebeb]/50">
         <form className="m-5" onSubmit={createUser}>

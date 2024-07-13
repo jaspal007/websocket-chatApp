@@ -1,5 +1,5 @@
 // import { io } from "socket.io-client";
-import Chat from "./chat";
+import Chat from "./chat/[chat]";
 import connection, { initMongoose } from "../../config/mongoose";
 import { useEffect } from "react";
 

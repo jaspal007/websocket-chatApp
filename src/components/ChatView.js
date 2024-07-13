@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import ChatContent from "./ChatContent";
 
-export default function ({ socket }) {
-  const [name, setName] = useState("anonymous");
+export default function ({ socket, val }) {
+  const [name, setName] = useState(val);
   const [message, setMessage] = useState("");
   const [date, setDate] = useState(moment(Date.now()).fromNow());
   const [messages, setMessages] = useState([]);
@@ -80,6 +80,7 @@ export default function ({ socket }) {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            readOnly={true}
           />
         </div>
         <ChatContent messages={messages} feedback={feedback} />
