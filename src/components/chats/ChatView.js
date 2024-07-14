@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import ChatContent from "./ChatContent";
 
-export default function ({ socket, val, peer }) {
-  const [name, setName] = useState(val);
+export default function ({ socket, val }) {
+  const [name, setName] = useState(val[0]);
   const [message, setMessage] = useState("");
   const [date, setDate] = useState(moment(Date.now()).fromNow());
   const [messages, setMessages] = useState([]);
@@ -13,11 +13,13 @@ export default function ({ socket, val, peer }) {
 
   useEffect(() => {
     socket.on("chat-message", (data) => {
-      addMessageToUI(false, data);
+      if (data.sender === val[0]) addMessageToUI(false, data);
     });
     socket.on("feedback", (data) => {
-      console.log(data);
-      setFeedback(data);
+      if (data.sender === val[0]) {
+        console.log(data);
+        setFeedback(data.feedback);
+      }
     });
     return () => {
       socket.off("chat-message");
@@ -37,6 +39,8 @@ export default function ({ socket, val, peer }) {
       message: message,
       date: date,
       isOwn: true,
+      peer: val[0],
+      sender: val[1],
     };
     socket.emit("message", pkt);
     addMessageToUI(true, pkt);
@@ -46,6 +50,7 @@ export default function ({ socket, val, peer }) {
   function addMessageToUI(isOwn, pkt) {
     setMessages((p) => [...p, { ...pkt, isOwn }]);
   }
+
   function scrollToBottom() {
     const chatContent = document.getElementById("chat-content");
     chatContent.scrollTo({ top: chatContent.scrollHeight, behavior: "smooth" });
@@ -56,19 +61,22 @@ export default function ({ socket, val, peer }) {
     messageInput.addEventListener("focus", (e) => {
       socket.emit("feedback", {
         feedback: `typing...`,
-        peer: peer,
+        peer: val[0],
+        sender: val[1],
       });
     });
     messageInput.addEventListener("keypress", (e) => {
       socket.emit("feedback", {
         feedback: `typing...`,
-        peer: peer,
+        peer: val[0],
+        sender: val[1],
       });
     });
     messageInput.addEventListener("blur", (e) => {
       socket.emit("feedback", {
         feedback: "",
-        peer: peer,
+        peer: val[0],
+        sender: val[1],
       });
     });
   }
