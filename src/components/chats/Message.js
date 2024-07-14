@@ -1,4 +1,4 @@
-import { Socket } from "./socket";
+import { Socket } from "../socket";
 
 export default function ({ isOwn, packet }) {
   return (

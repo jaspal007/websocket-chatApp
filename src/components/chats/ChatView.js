@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import moment from "moment";
 import ChatContent from "./ChatContent";
 
-export default function ({ socket, val }) {
+export default function ({ socket, val, peer }) {
   const [name, setName] = useState(val);
   const [message, setMessage] = useState("");
   const [date, setDate] = useState(moment(Date.now()).fromNow());
@@ -16,8 +16,8 @@ export default function ({ socket, val }) {
       addMessageToUI(false, data);
     });
     socket.on("feedback", (data) => {
-      console.log(data.feedback);
-      setFeedback(data.feedback);
+      console.log(data);
+      setFeedback(data);
     });
     return () => {
       socket.off("chat-message");
@@ -55,17 +55,20 @@ export default function ({ socket, val }) {
     const messageInput = document.getElementById("message-input");
     messageInput.addEventListener("focus", (e) => {
       socket.emit("feedback", {
-        feedback: `✍️${name.valueOf()} is typing...`,
+        feedback: `typing...`,
+        peer: peer,
       });
     });
     messageInput.addEventListener("keypress", (e) => {
       socket.emit("feedback", {
-        feedback: `✍️${name.valueOf()} is typing...`,
+        feedback: `typing...`,
+        peer: peer,
       });
     });
     messageInput.addEventListener("blur", (e) => {
       socket.emit("feedback", {
         feedback: "",
+        peer: peer,
       });
     });
   }

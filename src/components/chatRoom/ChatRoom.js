@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import ChatTile from "./ChatTile";
 import { useRouter } from "next/router";
 
-export default function () {
+export default function ({usr}) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [users, setUsers] = useState([]);
@@ -28,12 +28,12 @@ export default function () {
           <div className="flex text-center justify-center self-center align-middle h-full items-center text-4xl text-[#7e7e7e]">Loading...</div>
         ) : (
           <div className="overflow-y-scroll scrollbar-hide">
-            {users.map((user) => (
+            {users.map((user) => ( user.username!=usr && 
               <ChatTile
                 user={user}
                 onClick={(e) => {
                   console.log(`clicked the user: ${user.name}`);
-                  router.push(`/chat/${user.name}`);
+                  router.push(`/chat/${[user.username, usr]}`);
                 }}
               />
             ))}

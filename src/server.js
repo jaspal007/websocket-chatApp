@@ -11,12 +11,15 @@ const nextHandler = nextApp.getRequestHandler()
 let port = 3000
 let socketConnected = new Set()
 
+
 io.on('connect', onConnected);
 
 function onConnected(socket){
-    console.log(`socket id: ${socket.id}`)
+    const socketID = socket.id;
+    console.log(`socket id: ${socketID}`)
     socketConnected.add(socket.id);
-    io.emit('total-clients', socketConnected.size);
+    // io.emit('total-clients', {clients: socketConnected.size});
+    io.to(socketID).emit('socketID', socketID);
 
     socket.on('disconnect', ()=>{
         console.log(`socket disconnected: ${socket.id}`)
@@ -29,8 +32,13 @@ function onConnected(socket){
         socket.broadcast.emit('chat-message', data);
     })
 
+    socket.on('connectReq', data=>{
+        socket.broadcast.emit('connectReq', data);
+    })
+
     socket.on('feedback', data=>{
-        socket.broadcast.emit('feedback', data);
+        console.log(`peer socket: ${data.peer}`);
+        socket.to(data.peer).emit('feedback', 'for you');
     })
 }
 
