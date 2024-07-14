@@ -14,6 +14,10 @@ export default function ({usr}) {
       setLoading(false);
     };
     callData();
+    let intervalID = setInterval(callData, 5000);
+    return()=>{
+      clearInterval(intervalID);
+    }
   }, []);
 
   return (
@@ -21,7 +25,7 @@ export default function ({usr}) {
       <div className="flex flex-col border-[#dddddd] border-solid border-8 rounded-2xl w-3/4 h-[700px]">
         <div className="flex justify-between w-full h-16 bg-[#ebebeb] p-2 rounded-b-xl rounded-t-lg shadow-xl shadow-gray-400 mb-2">
           <h2 className="flex text-3xl font-semibold w-full justify-center">
-            Chat Room
+            {`Chat Room (${users.length})`}
           </h2>
         </div>
         {loading ? (

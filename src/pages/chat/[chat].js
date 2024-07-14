@@ -21,9 +21,14 @@ export default function () {
       if (data.username === peers[0]) setPeer(data.socketID);
     });
     socket.emit("register", { username: peers[1] });
-    if (peers.length > 1) setInterval(connect, 2000);
+    let intervalID;
+    if (peers.length > 1) intervalID = setInterval(connect, 2000);
 
     return () => {
+      clearInterval(intervalID);
+      socket.off("socketID");
+      socket.off("connectReq");
+      socket.off("register");
       socket.close();
     };
   }, []);
@@ -41,7 +46,6 @@ export default function () {
   return (
     <div className="">
       <IChat />
-      <div onClick={connect}>connect</div>
       <ChatView socket={socket} val={peers} />
     </div>
   );

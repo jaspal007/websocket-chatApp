@@ -1,23 +1,56 @@
 import { CiUser } from "react-icons/ci";
 import { IoIosSend } from "react-icons/io";
 import { useEffect, useState } from "react";
-import moment from "moment";
 import ChatContent from "./ChatContent";
 
 export default function ({ socket, val }) {
   const [name, setName] = useState(val[0]);
   const [message, setMessage] = useState("");
-  const [date, setDate] = useState(moment(Date.now()).fromNow());
+  const [date, setDate] = useState(Date.now());
   const [messages, setMessages] = useState([]);
   const [feedback, setFeedback] = useState("");
 
-  useEffect(() => {
+  useEffect(() =>{
+    let messages = [];
+    const getData1 = async()=>{
+      var cred = {
+        peer: val[0],
+        sender: val[1],
+      };
+      let response = await fetch("/api/getMessage",{
+        method: "POST",
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body: JSON.stringify(cred),
+      });
+      response = await response.json();
+      messages = response;
+      getData2();
+    }
+    getData1();
+    const getData2 = async()=>{
+      var cred = {
+        peer: val[1],
+        sender: val[0],
+      };
+      let response = await fetch("/api/getMessage",{
+        method: "POST",
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body: JSON.stringify(cred),
+      });
+      response = await response.json();
+      response.map((e)=> messages.push(e));
+      messages.sort((a,b)=> new Date(a.date) - new Date(b.date));
+      setMessages(messages);
+    }
     socket.on("chat-message", (data) => {
       if (data.sender === val[0]) addMessageToUI(false, data);
     });
     socket.on("feedback", (data) => {
       if (data.sender === val[0]) {
-        console.log(data);
         setFeedback(data.feedback);
       }
     });
@@ -31,24 +64,31 @@ export default function ({ socket, val }) {
     scrollToBottom();
   }, [messages]);
 
-  function sendMessage() {
+  const sendMessage = async()=>{
     if (message.valueOf() === "") return;
     console.log(`value of message: ${message.valueOf()}`);
     const pkt = {
-      name: name,
       message: message,
       date: date,
-      isOwn: true,
       peer: val[0],
       sender: val[1],
     };
     socket.emit("message", pkt);
+    let response = await fetch('/api/postMessage', {
+      method:"POST",
+      headers:{
+        'Content-Type':'application/json',
+      },
+      body: JSON.stringify(pkt),
+    });
+    response = await response.json();
+    console.log(response['message']);
     addMessageToUI(true, pkt);
     setMessage("");
   }
 
   function addMessageToUI(isOwn, pkt) {
-    setMessages((p) => [...p, { ...pkt, isOwn }]);
+    setMessages((p) => [...p, { ...pkt}]);
   }
 
   function scrollToBottom() {
@@ -94,7 +134,7 @@ export default function ({ socket, val }) {
             readOnly={true}
           />
         </div>
-        <ChatContent messages={messages} feedback={feedback} />
+        <ChatContent messages={messages} feedback={feedback} peer={name} />
         <div className="flex justify-between w-full h-20 bg-[#ebebeb] rounded-t-2xl rounded-b-lg p-2">
           <textarea
             className="text-3xl grow text-[#7e7e7e] border-none outline-none bg-[#ebebeb] break-words h-16 scrollbar-hide"
