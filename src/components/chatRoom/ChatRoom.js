@@ -12,11 +12,12 @@ export default function ({usr}) {
       const data = await fetch("/api/getUsers").then((data) => data.json());
       setUsers(data);
       setLoading(false);
+      localStorage.setItem('users', JSON.stringify(data));
     };
     callData();
-    let intervalID = setInterval(callData, 5000);
+    // let intervalID = setInterval(callData, 30000);
     return()=>{
-      clearInterval(intervalID);
+      // clearInterval(intervalID);
     }
   }, []);
 

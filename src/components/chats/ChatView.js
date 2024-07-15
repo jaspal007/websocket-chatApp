@@ -3,122 +3,96 @@ import { IoIosSend } from "react-icons/io";
 import { useEffect, useState } from "react";
 import ChatContent from "./ChatContent";
 
-export default function ({ socket, val }) {
+export default function ({
+  val,
+  peer,
+  sender,
+  clearFeedback,
+  feedback,
+}) {
   const [name, setName] = useState(val[0]);
   const [message, setMessage] = useState("");
   const [date, setDate] = useState(Date.now());
   const [messages, setMessages] = useState([]);
-  const [feedback, setFeedback] = useState("");
-
-  useEffect(() =>{
-    let messages = [];
-    const getData1 = async()=>{
-      var cred = {
-        peer: val[0],
-        sender: val[1],
-      };
-      let response = await fetch("/api/getMessage",{
-        method: "POST",
-        headers:{
-          'Content-Type':'application/json'
-        },
-        body: JSON.stringify(cred),
-      });
-      response = await response.json();
-      messages = response;
-      getData2();
-    }
-    getData1();
-    const getData2 = async()=>{
-      var cred = {
-        peer: val[1],
-        sender: val[0],
-      };
-      let response = await fetch("/api/getMessage",{
-        method: "POST",
-        headers:{
-          'Content-Type':'application/json'
-        },
-        body: JSON.stringify(cred),
-      });
-      response = await response.json();
-      response.map((e)=> messages.push(e));
-      messages.sort((a,b)=> new Date(a.date) - new Date(b.date));
-      setMessages(messages);
-    }
-    socket.on("chat-message", (data) => {
-      if (data.sender === val[0]) addMessageToUI(false, data);
-    });
-    socket.on("feedback", (data) => {
-      if (data.sender === val[0]) {
-        setFeedback(data.feedback);
-      }
-    });
-    return () => {
-      socket.off("chat-message");
-      socket.off("feedback");
-    };
-  }, [socket, feedback]);
+  const [scroll, setScroll] = useState(true);
+  let msgs = [];
 
   useEffect(() => {
+    const getData1 = async () => {
+      var cred = {
+        peer: peer._id,
+        sender: sender._id,
+      };
+      let response = await fetch("/api/getMessage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cred),
+      });
+      response = await response.json();
+      msgs = response;
+      msgs.map((msg)=>addMessageToUI(false, msg));
+      getData2();
+    };
+    getData1();
     scrollToBottom();
-  }, [messages]);
+    const getData2 = async () => {
+      var cred = {
+        peer: sender._id,
+        sender: peer._id,
+      };
+      let response = await fetch("/api/getMessage", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(cred),
+      });
+      let intervalID;
+      intervalID = setInterval(getData1, 10000);
+      response = await response.json();
+      response.map((e) => msgs.push(e));
+      msgs.push((msg)=>addMessageToUI(false, msg));
+      msgs.sort((a, b) => new Date(a.date) - new Date(b.date));
+      setMessages(msgs);
+    };
+    return()=>{
+      clearInterval(intervalID);
+    }
+  }, []);
 
-  const sendMessage = async()=>{
+  const sendMessage = async () => {
     if (message.valueOf() === "") return;
     console.log(`value of message: ${message.valueOf()}`);
     const pkt = {
       message: message,
       date: date,
-      peer: val[0],
-      sender: val[1],
+      peer: peer._id,
+      sender: sender._id,
     };
-    socket.emit("message", pkt);
-    let response = await fetch('/api/postMessage', {
-      method:"POST",
-      headers:{
-        'Content-Type':'application/json',
+    let response = await fetch("/api/postMessage", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(pkt),
     });
-    response = await response.json();
-    console.log(response['message']);
-    addMessageToUI(true, pkt);
     setMessage("");
-  }
+    setScroll(true);
+    response = await response.json();
+    console.log(response["message"]);
+    addMessageToUI(true, pkt);
+  };
 
-  function addMessageToUI(isOwn, pkt) {
-    setMessages((p) => [...p, { ...pkt}]);
+  const addMessageToUI = (isOwn, pkt)=>{
+    setMessages((p)=>[...p, {pkt}]);
   }
 
   function scrollToBottom() {
     const chatContent = document.getElementById("chat-content");
     chatContent.scrollTo({ top: chatContent.scrollHeight, behavior: "smooth" });
-  }
-
-  function clearFeedback() {
-    const messageInput = document.getElementById("message-input");
-    messageInput.addEventListener("focus", (e) => {
-      socket.emit("feedback", {
-        feedback: `typing...`,
-        peer: val[0],
-        sender: val[1],
-      });
-    });
-    messageInput.addEventListener("keypress", (e) => {
-      socket.emit("feedback", {
-        feedback: `typing...`,
-        peer: val[0],
-        sender: val[1],
-      });
-    });
-    messageInput.addEventListener("blur", (e) => {
-      socket.emit("feedback", {
-        feedback: "",
-        peer: val[0],
-        sender: val[1],
-      });
-    });
+    setScroll(false);
   }
 
   return (
@@ -134,7 +108,14 @@ export default function ({ socket, val }) {
             readOnly={true}
           />
         </div>
-        <ChatContent messages={messages} feedback={feedback} peer={name} />
+        <ChatContent
+          messages={messages}
+          feedback={feedback}
+          peer={peer}
+          sender={sender}
+          func={scrollToBottom}
+          scroll={scroll}
+        />
         <div className="flex justify-between w-full h-20 bg-[#ebebeb] rounded-t-2xl rounded-b-lg p-2">
           <textarea
             className="text-3xl grow text-[#7e7e7e] border-none outline-none bg-[#ebebeb] break-words h-16 scrollbar-hide"
@@ -149,7 +130,10 @@ export default function ({ socket, val }) {
           <div className="w-1 bg-[#dddddd] rounded-xl"></div>
           <button
             className="flex justify-center content-center items-center text-[#7e7e7e]"
-            onClick={(e) => sendMessage()}
+            onClick={(e) => {
+              sendMessage();
+              setScroll(true)
+            }}
           >
             <IoIosSend className="text-2xl" />
             <p className="text-2xl">send</p>

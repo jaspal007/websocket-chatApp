@@ -25,7 +25,10 @@ export default function () {
     response = await response.json();
     console.log(response["message"]);
     setMessage(response["message"]);
-    if (response["status"] === "ok") router.push(`/user/${[user.username]}`);
+    if (response["status"] === "ok") {
+      let route = JSON.stringify(response["user"]);
+      router.push(`/user/${route}`);
+    }
   };
   return (
     <div className="w-full h-screen flex flex-col justify-center items-center">

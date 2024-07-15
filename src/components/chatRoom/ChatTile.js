@@ -1,5 +1,4 @@
 import { VscChevronRight } from "react-icons/vsc";
-import { FaRegEyeSlash } from "react-icons/fa";
 
 export default function ({ user, onClick }) {
   return (

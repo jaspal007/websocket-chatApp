@@ -59,10 +59,13 @@ function onConnected(socket) {
 
   socket.on("feedback", (data) => {
     const peerSocketID = userSocket[data.peer];
-    // const senderSocketID = userSocket[data.sender];
     console.log(`peer socket: ${data.peer}`);
-    // console.log(`sender socket: ${data.sender}`);
-    if (peerSocketID) io.to(peerSocketID).emit("feedback", data);
+    console.log(`sender socket: ${data.sender}`);
+    if (peerSocketID){
+      console.log(`peerSocketID: ${peerSocketID}`);
+      console.log(`senderSocketID: ${userSocket[data.sender]}`);
+      io.to(peerSocketID).emit("feedback", data);
+    }
   });
 }
 

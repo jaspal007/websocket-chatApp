@@ -27,5 +27,5 @@ export default async function handler(req, res) {
 
   res
     .status(200)
-    .json({ status: "ok", message: "user logged in successfully" });
+    .json({ status: "ok", message: "user logged in successfully", user: resp });
 }
